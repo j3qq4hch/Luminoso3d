@@ -2,25 +2,52 @@
 <html>
 <head>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    
     <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle at center, #7b7b7b, #343434);
+            overflow: hidden;
+        }
+
         model-viewer {
             width: 100vw;
             height: 100vh;
+            background-color: transparent;
         }
     </style>
 </head>
+
 <body>
 
     <model-viewer
         id="viewer"
-        src="./toucan.glb"
-        alt="3D Model"
-        auto-rotate
+        src="./luminoso.glb"
+
         camera-controls
-        shadow-intensity="1">
+        auto-rotate
+        auto-rotate-delay="0"
+        rotation-per-second="10deg"
+
+        exposure="1.2"
+        shadow-intensity="1"
+        shadow-softness="0.8"
+
+        environment-image="neutral"
+
+        camera-orbit="auto"
+        camera-target="auto"
+
+        field-of-view="35deg"
+
+        interaction-prompt="none"
+        loading="eager"
+    >
     </model-viewer>
 
     <script>
+        const viewer = document.getElementById("viewer");
+
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
@@ -34,12 +61,20 @@
 
         if (modelName) {
             const safeName = sanitizeModelName(modelName);
-            const viewer = document.getElementById("viewer");
-
             viewer.src = `./${safeName}`;
             document.title = safeName;
         }
-    </script>
 
-</body>
-</html>
+        // 🔥 Автоподбор камеры после загрузки модели
+        viewer.addEventListener("load", () => {
+            const center = viewer.getBoundingBoxCenter();
+            const size = viewer.getDimensions();
+
+            // размер модели (примерно максимальная сторона)
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            // расстояние камеры (чем больше модель — тем дальше)
+            const distance = maxDim * 2.2;
+
+            // немного сверху (как Sketchfab)
+            viewer.cameraTarget = `${center.x}m ${center.y}m
